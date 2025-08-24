@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syna - Quản lý chi tiêu thông minh</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="Syna.css">
+    <style>
+        /* Savings Features */
+        .savings-card {
+            background: linear-gradient(135deg, var(--success) 0%, var(--info) 100%);
+            color: white;
+            border: none;
+        }
+
+        .savings-card .card-title {
+            color: white;
+        }
+
+        .savings-overview {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .savings-stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: var(--radius);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .savings-stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+
+        .savings-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .savings-history {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            padding: 1rem;
+        }
+
+        .savings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .savings-item:last-child {
+            border-bottom: none;
+        }
+
+        .savings-date {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .savings-amount {
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Goals Modal */
+        .goal-item {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .goal-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .goal-progress {
+            width: 100%;
+            height: 8px;
+            background: var(--light-gray);
+            border-radius: 4px;
+            margin: 0.5rem 0;
+            overflow: hidden;
+        }
+
+        .goal-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--info));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .goal-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Budget Analysis */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .analysis-item {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius);
+            text-align: center;
+        }
+
+        .analysis-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .analysis-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .analysis-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Comparison Chart */
+        .comparison-chart {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Quick Action Buttons */
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .quick-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .quick-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive for new features */
+        @media (max-width: 768px) {
+            .savings-overview,
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                flex-direction: column;
+            }
+            
+            .quick-btn {
+                min-width: auto;
+            }
+        }
+
+        /* Enhanced notifications */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .btn-with-badge {
+            position: relative;
+        }
+
+        /* Monthly summary card */
+        .summary-card {
+            background: linear-gradient(135deg, var(--warning) 0%, var(--danger) 100%);
+            color: white;
+            border: none;
+        }
+
+        .summary-card .card-title {
+            color: white;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .summary-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: var(--radius);
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <div class="mobile-header" id="mobile-header">
+        <div class="mobile-header-content">
+            <div class="logo">
+                <i class="fas fa-wallet"></i>
+                <span>Syna</span>
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" id="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="profile-btn btn-with-badge" id="profile-btn">
+                    <i class="fas fa-user-cog"></i>
+                    <span class="notification-badge" id="mobile-notification-badge" style="display: none;">!</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Desktop Header -->
+        <header class="desktop-header" id="desktop-header">
+            <h1>
+                <i class="fas fa-wallet"></i>
+                Syna
+            </h1>
+            <p>Quản lý chi tiêu thông minh - Kiểm soát tài chính cá nhân</p>
+            <div class="header-actions desktop-actions">
+                <button class="theme-toggle" id="desktop-theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="profile-btn btn-with-badge" id="desktop-profile-btn">
+                    <i class="fas fa-user-cog"></i>
+                    <span class="notification-badge" id="desktop-notification-badge" style="display: none;">!</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Salary Setup Modal (Hidden after first setup) -->
+        <div class="salary-setup" id="salary-setup">
+            <div class="card setup-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Thiết lập thu nhập của bạn
+                    </h2>
+                </div>
+
+                <div class="salary-tabs">
+                    <div class="salary-tab active" data-period="monthly">Theo tháng</div>
+                    <div class="salary-tab" data-period="weekly">Theo tuần</div>
+                    <div class="salary-tab" data-period="daily">Theo ngày</div>
+                </div>
+
+                <div class="salary-content">
+                    <div class="salary-tab-content active" id="monthly-tab">
+                        <div class="input-group">
+                            <label class="input-label" for="monthly-salary">Lương tháng (VND)</label>
+                            <input type="number" id="monthly-salary" class="input-field" placeholder="Nhập lương tháng của bạn">
+                        </div>
+                    </div>
+
+                    <div class="salary-tab-content" id="weekly-tab">
+                        <div class="input-group">
+                            <label class="input-label" for="weekly-salary">Lương tuần (VND)</label>
+                            <input type="number" id="weekly-salary" class="input-field" placeholder="Nhập lương tuần của bạn">
+                        </div>
+                    </div>
+
+                    <div class="salary-tab-content" id="daily-tab">
+                        <div class="input-group">
+                            <label class="input-label" for="daily-salary">Lương ngày (VND)</label>
+                            <input type="number" id="daily-salary" class="input-field" placeholder="Nhập lương ngày của bạn">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-block" id="save-salary-btn">
+                    <i class="fas fa-save"></i>
+                    Lưu & Bắt đầu
+                </button>
+            </div>
+        </div>
+
+        <!-- Main App Layout -->
+        <div class="app-layout" id="main-app" style="display: none;">
+            <div class="main-content">
+                <!-- Monthly Summary Card -->
+                <div class="card summary-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Tổng kết tháng này
+                        </h2>
+                        <button class="btn btn-primary" id="export-data-btn">
+                            <i class="fas fa-download"></i>
+                            Xuất
+                        </button>
+                    </div>
+
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-value" id="month-income">0</div>
+                            <div class="summary-label">Thu nhập</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="month-spent">0</div>
+                            <div class="summary-label">Đã chi</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="month-saved">0</div>
+                            <div class="summary-label">Tiết kiệm</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Add Expense -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-plus-circle"></i>
+                            Thêm chi tiêu nhanh
+                        </h2>
+                    </div>
+
+                    <div class="expense-form">
+                        <div class="expense-row">
+                            <div class="input-group">
+                                <label class="input-label" for="expense-amount">Số tiền (VND)</label>
+                                <input type="number" id="expense-amount" class="input-field regular-input" placeholder="Nhập số tiền">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label" for="expense-note">Ghi chú</label>
+                                <input type="text" id="expense-note" class="input-field regular-input" placeholder="Mô tả chi tiêu">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Danh mục</label>
+                            <div class="category-select">
+                                <div class="category-option active" data-category="food">
+                                    <i class="fas fa-utensils"></i> Ăn uống
+                                </div>
+                                <div class="category-option" data-category="transport">
+                                    <i class="fas fa-car"></i> Di chuyển
+                                </div>
+                                <div class="category-option" data-category="shopping">
+                                    <i class="fas fa-shopping-bag"></i> Mua sắm
+                                </div>
+                                <div class="category-option" data-category="entertainment">
+                                    <i class="fas fa-gamepad"></i> Giải trí
+                                </div>
+                                <div class="category-option" data-category="bill">
+                                    <i class="fas fa-file-invoice"></i> Hóa đơn
+                                </div>
+                                <div class="category-option" data-category="health">
+                                    <i class="fas fa-heart"></i> Sức khỏe
+                                </div>
+                                <div class="category-option" data-category="education">
+                                    <i class="fas fa-book"></i> Giáo dục
+                                </div>
+                                <div class="category-option" data-category="other">
+                                    <i class="fas fa-ellipsis-h"></i> Khác
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-success btn-block" id="add-expense-btn">
+                            <i class="fas fa-plus"></i>
+                            Thêm chi tiêu
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics Overview -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-line"></i>
+                            Thống kê tổng quan
+                        </h2>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card today">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div class="stat-value" id="today-expense">0</div>
+                            <div class="stat-label">Chi tiêu hôm nay</div>
+                        </div>
+
+                        <div class="stat-card remaining">
+                            <div class="stat-icon">
+                                <i class="fas fa-piggy-bank"></i>
+                            </div>
+                            <div class="stat-value" id="today-remaining">0</div>
+                            <div class="stat-label">Còn lại hôm nay</div>
+                        </div>
+
+                        <div class="stat-card weekly">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-week"></i>
+                            </div>
+                            <div class="stat-value" id="weekly-expense">0</div>
+                            <div class="stat-label">Chi tiêu tuần này</div>
+                        </div>
+
+                        <div class="stat-card monthly">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="stat-value" id="monthly-remaining">0</div>
+                            <div class="stat-label">Còn lại tháng này</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savings Overview Card -->
+                <div class="card savings-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-piggy-bank"></i>
+                            Tiết kiệm thông minh
+                        </h2>
+                        <button class="btn btn-primary" id="view-goals-btn">
+                            <i class="fas fa-bullseye"></i>
+                            Mục tiêu
+                        </button>
+                    </div>
+
+                    <div class="quick-actions">
+                        <button class="quick-btn" id="manual-save-btn">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            Tiết kiệm thủ công
+                        </button>
+                        <button class="quick-btn" id="savings-report-btn">
+                            <i class="fas fa-chart-area"></i>
+                            Báo cáo tiết kiệm
+                        </button>
+                        <button class="quick-btn" id="withdraw-savings-btn">
+                            <i class="fas fa-money-bill"></i>
+                            Rút tiết kiệm
+                        </button>
+                    </div>
+
+                    <div class="savings-overview">
+                        <div class="savings-stat">
+                            <div class="savings-stat-value" id="daily-savings">0 VND</div>
+                            <div class="savings-stat-label">Tiết kiệm hôm nay</div>
+                        </div>
+                        <div class="savings-stat">
+                            <div class="savings-stat-value" id="total-savings">0 VND</div>
+                            <div class="savings-stat-label">Tổng tiết kiệm</div>
+                        </div>
+                        <div class="savings-stat">
+                            <div class="savings-stat-value" id="monthly-savings">0 VND</div>
+                            <div class="savings-stat-label">Tiết kiệm tháng này</div>
+                        </div>
+                        <div class="savings-stat">
+                            <div class="savings-stat-value" id="savings-streak">0 ngày</div>
+                            <div class="savings-stat-label">Chuỗi tiết kiệm</div>
+                        </div>
+                    </div>
+
+                    <div class="savings-history" id="savings-history">
+                        <div class="empty-state">
+                            <i class="fas fa-piggy-bank"></i>
+                            <span>Chưa có khoản tiết kiệm nào</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Budget Analysis Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Phân tích ngân sách
+                        </h2>
+                        <button class="btn btn-secondary" id="detailed-analysis-btn">
+                            <i class="fas fa-microscope"></i>
+                            Chi tiết
+                        </button>
+                    </div>
+
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <div class="analysis-icon" style="color: var(--primary);">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="analysis-value" id="budget-usage">0%</div>
+                            <div class="analysis-label">Sử dụng ngân sách</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-icon" style="color: var(--success);">
+                                <i class="fas fa-trend-up"></i>
+                            </div>
+                            <div class="analysis-value" id="avg-daily">0</div>
+                            <div class="analysis-label">Chi tiêu TB/ngày</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-icon" style="color: var(--warning);">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <div class="analysis-value" id="top-category">-</div>
+                            <div class="analysis-label">Danh mục chi nhiều</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-icon" style="color: var(--info);">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="analysis-value" id="spending-days">0</div>
+                            <div class="analysis-label">Ngày có chi tiêu</div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-chart">
+                        <canvas id="category-chart" style="max-height: 200px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Biểu đồ chi tiêu tuần
+                        </h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="expense-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Expenses -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-history"></i>
+                            Lịch sử chi tiêu gần đây
+                        </h2>
+                        <button class="btn btn-secondary" id="view-all-expenses-btn">
+                            <i class="fas fa-list"></i>
+                            Xem tất cả
+                        </button>
+                    </div>
+                    <ul class="expense-list" id="expense-list">
+                        <li class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <span>Chưa có chi tiêu nào</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- AI Recommendations -->
+                <div class="card recommendation-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-robot"></i>
+                            Khuyến nghị thông minh
+                        </h2>
+                    </div>
+                    <div class="recommendation-content">
+                        <p id="recommendation-text">Hãy bắt đầu thêm chi tiêu để nhận được khuyến nghị từ Syna AI!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profile-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-user-cog"></i>
+                    Cài đặt Profile
+                </h2>
+                <button class="close-btn" id="close-profile-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-section">
+                    <h3>
+                        <i class="fas fa-money-bill-wave"></i>
+                        Thu nhập hiện tại
+                    </h3>
+                    <div class="current-salary">
+                        <div class="salary-info">
+                            <span>Thu nhập tháng:</span>
+                            <span id="current-monthly-income">0 VND</span>
+                        </div>
+                        <div class="salary-info">
+                            <span>Ngân sách ngày:</span>
+                            <span id="current-daily-budget">0 VND</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3>
+                        <i class="fas fa-edit"></i>
+                        Thay đổi thu nhập
+                    </h3>
+                    <div class="input-group">
+                        <label class="input-label" for="new-salary">Thu nhập tháng mới (VND)</label>
+                        <input type="number" id="new-salary" class="input-field regular-input" placeholder="Nhập thu nhập tháng mới">
+                    </div>
+                    <button class="btn btn-primary" id="update-salary-btn">
+                        <i class="fas fa-save"></i>
+                        Cập nhật thu nhập
+                    </button>
+                </div>
+
+                <div class="profile-section">
+                    <h3>
+                        <i class="fas fa-cog"></i>
+                        Cài đặt thông báo
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="budget-notifications" checked>
+                            <span>Cảnh báo vượt ngân sách</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="savings-notifications" checked>
+                            <span>Nhắc nhở tiết kiệm</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="daily-reminder" checked>
+                            <span>Nhắc nhở hàng ngày</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3>
+                        <i class="fas fa-download"></i>
+                        Sao lưu & Khôi phục
+                    </h3>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary" id="export-backup-btn">
+                            <i class="fas fa-download"></i>
+                            Sao lưu dữ liệu
+                        </button>
+                        <button class="btn btn-secondary" id="import-backup-btn">
+                            <i class="fas fa-upload"></i>
+                            Khôi phục dữ liệu
+                        </button>
+                        <input type="file" id="backup-file-input" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="profile-section danger-zone">
+                    <h3>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Vùng nguy hiểm
+                    </h3>
+                    <p class="danger-text">Các hành động này không thể hoàn tác!</p>
+                    <div class="danger-actions">
+                        <button class="btn btn-danger" id="reset-month-btn">
+                            <i class="fas fa-undo"></i>
+                            Reset tháng này
+                        </button>
+                        <button class="btn btn-danger" id="reset-all-btn">
+                            <i class="fas fa-trash"></i>
+                            Xóa tất cả dữ liệu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Modal -->
+    <div class="modal" id="goals-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-bullseye"></i>
+                    Mục tiêu tiết kiệm
+                </h2>
+                <button class="close-btn" id="close-goals-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label class="input-label">Thêm mục tiêu mới</label>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.5rem;">
+                        <input type="text" id="goal-name" class="input-field regular-input" placeholder="Tên mục tiêu (VD: Mua iPhone)">
+                        <input type="number" id="goal-amount" class="input-field regular-input" placeholder="Số tiền">
+                    </div>
+                    <button class="btn btn-success" id="add-goal-btn" style="margin-top: 0.5rem;">
+                        <i class="fas fa-plus"></i> Thêm mục tiêu
+                    </button>
+                </div>
+
+                <div id="goals-list">
+                    <!-- Goals will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Savings Modal -->
+    <div class="modal" id="manual-savings-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-hand-holding-usd"></i>
+                    Tiết kiệm thủ công
+                </h2>
+                <button class="close-btn" id="close-manual-savings-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label class="input-label" for="manual-savings-amount">Số tiền tiết kiệm (VND)</label>
+                    <input type="number" id="manual-savings-amount" class="input-field regular-input" placeholder="Nhập số tiền muốn tiết kiệm">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="manual-savings-note">Ghi chú</label>
+                    <input type="text" id="manual-savings-note" class="input-field regular-input" placeholder="Lý do tiết kiệm (không bắt buộc)">
+                </div>
+                <button class="btn btn-success btn-block" id="confirm-manual-savings-btn">
+                    <i class="fas fa-piggy-bank"></i>
+                    Xác nhận tiết kiệm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Analysis Modal -->
+    <div class="modal" id="analysis-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-microscope"></i>
+                    Phân tích chi tiết
+                </h2>
+                <button class="close-btn" id="close-analysis-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-section">
+                    <h3>
+                        <i class="fas fa-chart-line"></i>
+                        Xu hướng chi tiêu
+                    </h3>
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <div class="analysis-value" id="weekly-trend">+0%</div>
+                            <div class="analysis-label">So với tuần trước</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-value" id="monthly-trend">+0%</div>
+                            <div class="analysis-label">So với tháng trước</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3>
+                        <i class="fas fa-tags"></i>
+                        Chi tiêu theo danh mục
+                    </h3>
+                    <div id="category-breakdown">
+                        <!-- Category breakdown will be populated here -->
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3>
+                        <i class="fas fa-lightbulb"></i>
+                        Gợi ý tối ưu
+                    </h3>
+                    <div id="optimization-suggestions">
+                        <!-- Suggestions will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Savings Report Modal -->
+    <div class="modal" id="savings-report-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-chart-area"></i>
+                    Báo cáo tiết kiệm
+                </h2>
+                <button class="close-btn" id="close-savings-report-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-section">
+                    <h3>
+                        <i class="fas fa-calendar-alt"></i>
+                        Tiết kiệm theo thời gian
+                    </h3>
+                    <div style="height: 300px;">
+                        <canvas id="savings-trend-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3>
+                        <i class="fas fa-trophy"></i>
+                        Thành tích tiết kiệm
+                    </h3>
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <div class="analysis-icon" style="color: var(--success);">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="analysis-value" id="best-saving-day">0</div>
+                            <div class="analysis-label">Tiết kiệm nhiều nhất/ngày</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-icon" style="color: var(--primary);">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="analysis-value" id="saving-consistency">0%</div>
+                            <div class="analysis-label">Tỷ lệ tiết kiệm</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Expenses Modal -->
+    <div class="modal" id="all-expenses-modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-list"></i>
+                    Tất cả chi tiêu
+                </h2>
+                <button class="close-btn" id="close-all-expenses-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <select id="expense-filter-month" class="input-field regular-input" style="flex: 1; min-width: 120px;">
+                        <option value="">Tất cả tháng</option>
+                    </select>
+                    <select id="expense-filter-category" class="input-field regular-input" style="flex: 1; min-width: 120px;">
+                        <option value="">Tất cả danh mục</option>
+                    </select>
+                    <input type="text" id="expense-search" class="input-field regular-input" placeholder="Tìm kiếm..." style="flex: 2; min-width: 150px;">
+                </div>
+                
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius);">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="background: var(--bg-secondary); position: sticky; top: 0;">
+                            <tr>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--border);">Ngày</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--border);">Danh mục</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--border);">Mô tả</th>
+                                <th style="padding: 1rem; text-align: right; border-bottom: 1px solid var(--border);">Số tiền</th>
+                                <th style="padding: 1rem; text-align: center; border-bottom: 1px solid var(--border);">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-expenses-table">
+                            <!-- Expenses will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); text-align: center;">
+                    <strong>Tổng cộng: <span id="filtered-expenses-total">0 VND</span></strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Savings Modal -->
+    <div class="modal" id="withdraw-savings-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-money-bill"></i>
+                    Rút tiết kiệm
+                </h2>
+                <button class="close-btn" id="close-withdraw-savings-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    Tổng tiết kiệm hiện tại: <strong id="current-total-savings">0 VND</strong>
+                </p>
+                <div class="input-group">
+                    <label class="input-label" for="withdraw-amount">Số tiền muốn rút (VND)</label>
+                    <input type="number" id="withdraw-amount" class="input-field regular-input" placeholder="Nhập số tiền muốn rút">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="withdraw-purpose">Mục đích sử dụng</label>
+                    <input type="text" id="withdraw-purpose" class="input-field regular-input" placeholder="VD: Mua điện thoại, khẩn cấp...">
+                </div>
+                <button class="btn btn-danger btn-block" id="confirm-withdraw-btn">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    Xác nhận rút tiền
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h2 id="confirm-title">Xác nhận</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="confirm-cancel">Hủy</button>
+                <button class="btn btn-danger" id="confirm-ok">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="toast" id="success-toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span id="toast-message">Thành công!</span>
+        </div>
+    </div>
+
+    <!-- Warning Toast -->
+    <div class="toast" id="warning-toast" style="background: var(--warning);">
+        <div class="toast-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="warning-toast-message">Cảnh báo!</span>
+        </div>
+    </div>
+
+    <!-- Error Toast -->
+    <div class="toast" id="error-toast" style="background: var(--danger);">
+        <div class="toast-content">
+            <i class="fas fa-times-circle"></i>
+            <span id="error-toast-message">Lỗi!</span>
+        </div>
+    </div>
+
+    <script src="Syna.js"></script>
+    <script>
+        // Additional functionality for new features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Export data functionality
+            document.getElementById('export-data-btn')?.addEventListener('click', function() {
+                window.synaApp.exportData();
+            });
+
+            // Import backup functionality
+            document.getElementById('export-backup-btn')?.addEventListener('click', function() {
+                window.synaApp.exportData();
+            });
+
+            document.getElementById('import-backup-btn')?.addEventListener('click', function() {
+                document.getElementById('backup-file-input').click();
+            });
+
+            document.getElementById('backup-file-input')?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    window.synaApp.importData(file);
+                }
+            });
+
+            // Quick action buttons
+            document.getElementById('manual-save-btn')?.addEventListener('click', function() {
+                document.getElementById('manual-savings-modal').classList.add('show');
+                document.body.style.overflow = 'hidden';
+            });
+
+            document.getElementById('savings-report-btn')?.addEventListener('click', function() {
+                window.synaApp.openSavingsReportModal();
+            });
+
+            document.getElementById('withdraw-savings-btn')?.addEventListener('click', function() {
+                window.synaApp.openWithdrawSavingsModal();
+            });
+
+            document.getElementById('view-all-expenses-btn')?.addEventListener('click', function() {
+                window.synaApp.openAllExpensesModal();
+            });
+
+            // Close modals
+            document.querySelectorAll('.close-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modal = btn.closest('.modal');
+                    modal.classList.remove('show');
+                    document.body.style.overflow = 'auto';
+                });
+            });
+
+            // Close modals on backdrop click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.classList.remove('show');
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            });
+
+            // Manual savings confirmation
+            document.getElementById('confirm-manual-savings-btn')?.addEventListener('click', function() {
+                const amount = parseInt(document.getElementById('manual-savings-amount').value) || 0;
+                const note = document.getElementById('manual-savings-note').value.trim();
+                
+                if (amount > 0) {
+                    window.synaApp.addManualSaving(amount, note);
+                    document.getElementById('manual-savings-modal').classList.remove('show');
+                    document.body.style.overflow = 'auto';
+                    document.getElementById('manual-savings-amount').value = '';
+                    document.getElementById('manual-savings-note').value = '';
+                }
+            });
+
+            // Notification settings
+            document.getElementById('budget-notifications')?.addEventListener('change', function() {
+                window.synaApp.updateNotificationSetting('budgetWarning', this.checked);
+            });
+
+            document.getElementById('savings-notifications')?.addEventListener('change', function() {
+                window.synaApp.updateNotificationSetting('savingsReminder', this.checked);
+            });
+
+            document.getElementById('daily-reminder')?.addEventListener('change', function() {
+                window.synaApp.updateNotificationSetting('dailyReminder', this.checked);
+            });
+
+            // Expense filtering
+            document.getElementById('expense-filter-month')?.addEventListener('change', function() {
+                window.synaApp.filterExpenses();
+            });
+
+            document.getElementById('expense-filter-category')?.addEventListener('change', function() {
+                window.synaApp.filterExpenses();
+            });
+
+            document.getElementById('expense-search')?.addEventListener('input', function() {
+                window.synaApp.filterExpenses();
+            });
+
+            // Withdraw savings confirmation
+            document.getElementById('confirm-withdraw-btn')?.addEventListener('click', function() {
+                const amount = parseInt(document.getElementById('withdraw-amount').value) || 0;
+                const purpose = document.getElementById('withdraw-purpose').value.trim();
+                
+                if (amount > 0) {
+                    window.synaApp.withdrawSavings(amount, purpose);
+                }
+            });
+
+            // Keyboard shortcuts help
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.key === '?') {
+                    e.preventDefault();
+                    window.synaApp.showKeyboardShortcuts();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
