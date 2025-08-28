@@ -70,7 +70,7 @@ Syna là một ứng dụng web giúp bạn **quản lý chi tiêu, tiết kiệ
 
   ```bash
 
-  https://github.com/Tken176/Syna\_project
+  https://github.com/Tken176/Syna_project
 ```
 
 Sau đó giải nén rồi mở file index.html bằng trình duyệt bất kỳ (Chrome, Edge, Firefox...).
